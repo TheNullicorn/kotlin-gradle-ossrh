@@ -1,0 +1,26 @@
+# Trigger manually, or whenever the main branch is updated.
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+
+    steps:
+        # Execute the next steps in the context of the main branch.
+      - name: Checkout main branch
+        uses: actions/checkout@v3.0.0
+
+        # Create the ~/.gradle/gradle.properties file for the user's OSSRH username & password
+      - name: Define OSSRH credentials
+        run: |
+          mkdir -p ~/.gradle
+          touch ~/.gradle/gradle.properties
+          echo 'ossrhUsername = ${{ secrets.OSSRH_USERNAME }}' >> ~/.gradle/gradle.properties
+          echo 'ossrhPassword = ${{ secrets.OSSRH_PASSWORD }}' >> ~/.gradle/gradle.properties
+
+        # Build, sign, & upload the archives to OSSRH.
+      - name: Publish to OSSRH
+        run: ./gradlew publish
